@@ -85,7 +85,8 @@ namespace concurrencpp::details {
     }
 
     void atomic_wait_for_native(void* atom, int32_t old, std::chrono::milliseconds ms) noexcept {
-        __ulock_wait(UL_COMPARE_AND_WAIT | ULF_NO_ERRNO, atom, old, ms.count() * 1'000);
+		const auto us = std::chrono::duration_cast<microseconds>(ms);
+        __ulock_wait(UL_COMPARE_AND_WAIT | ULF_NO_ERRNO, atom, old, us.count());
     }
 
     void atomic_notify_one_native(void* atom) noexcept {
