@@ -100,7 +100,7 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_3() {
     std::cout << "test_atomic_wait_for_timeout_3" << std::endl;
     // value had changed, notify wasn't called,
     std::atomic_int flag {0};
-    constexpr auto timeout_ms = 200;
+    constexpr auto timeout_ms = 400;
 
     std::thread modifier([&] {
         std::this_thread::sleep_for(std::chrono::milliseconds(timeout_ms / 2));
