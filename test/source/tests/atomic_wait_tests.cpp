@@ -90,8 +90,8 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_2() {
     const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 
     assert_equal(result, concurrencpp::details::atomic_wait_status::timeout);
-    assert_bigger_equal(time_diff, timeout_ms);
-    assert_smaller_equal(time_diff, timeout_ms + 25);
+    assert_bigger_equal(time_diff, timeout_ms - 25);
+    assert_smaller_equal(time_diff, timeout_ms + 35);
 
     modifier.join();
 }
@@ -115,8 +115,8 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_3() {
 
     // note: value did change, so it's ok to receive <<ok>> instead of timeout
     assert_equal(result, concurrencpp::details::atomic_wait_status::ok);
-    assert_bigger_equal(time_diff, timeout_ms);
-    assert_smaller_equal(time_diff, timeout_ms + 25);
+    assert_bigger_equal(time_diff, timeout_ms - 25);
+    assert_smaller_equal(time_diff, timeout_ms + 35);
 
     modifier.join();
 }
@@ -140,8 +140,8 @@ void concurrencpp::tests::test_atomic_wait_for_success() {
     const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(after - before).count();
 
     assert_equal(result, concurrencpp::details::atomic_wait_status::ok);
-    assert_bigger_equal(time_diff, modify_ms);
-    assert_smaller_equal(time_diff, modify_ms + 25);
+    assert_bigger_equal(time_diff, modify_ms - 25);
+    assert_smaller_equal(time_diff, modify_ms + 35);
 
     modifier.join();
 }
