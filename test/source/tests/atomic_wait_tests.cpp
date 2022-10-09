@@ -3,6 +3,8 @@
 #include "infra/tester.h"
 #include "infra/assertions.h"
 
+#include <iostream>
+
 namespace concurrencpp::tests {
     void test_atomic_wait();
 
@@ -55,6 +57,7 @@ void concurrencpp::tests::test_atomic_wait() {
 }
 
 void concurrencpp::tests::test_atomic_wait_for_timeout_1() {
+    std::cout << "test_atomic_wait_for_timeout_1" << std::endl;
     // timeout has reached
     std::atomic_int flag {0};
     constexpr auto timeout_ms = 100;
@@ -69,7 +72,8 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_1() {
     assert_bigger_equal(time_diff, timeout_ms);
 }
 
-void concurrencpp::tests::test_atomic_wait_for_timeout_2() {
+void concurrencpp::tests::test_atomic_wait_for_timeout_2() { 
+    std::cout << "test_atomic_wait_for_timeout_2" << std::endl;
     // notify was called, value hasn't changed
     std::atomic_int flag {0};
     constexpr auto timeout_ms = 200;
@@ -92,7 +96,8 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_2() {
     modifier.join();
 }
 
-void concurrencpp::tests::test_atomic_wait_for_timeout_3() {
+void concurrencpp::tests::test_atomic_wait_for_timeout_3() { 
+    std::cout << "test_atomic_wait_for_timeout_3" << std::endl;
     // value had changed, notify wasn't called,
     std::atomic_int flag {0};
     constexpr auto timeout_ms = 200;
@@ -116,7 +121,8 @@ void concurrencpp::tests::test_atomic_wait_for_timeout_3() {
     modifier.join();
 }
 
-void concurrencpp::tests::test_atomic_wait_for_success() {
+void concurrencpp::tests::test_atomic_wait_for_success() { 
+    std::cout << "test_atomic_wait_for_success" << std::endl;
     std::atomic_int flag {0};
     constexpr auto timeout_ms = 400;
     constexpr auto modify_ms = timeout_ms / 4;
