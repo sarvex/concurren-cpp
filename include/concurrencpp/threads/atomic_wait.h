@@ -51,7 +51,7 @@ namespace concurrencpp::details {
             }
 
             const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now);
-            assert(time_diff.count() > 0);
+            assert(time_diff.count() >= 0);
             atomic_wait_for_native(&atom, static_cast<int32_t>(old), time_diff);
         }
     }

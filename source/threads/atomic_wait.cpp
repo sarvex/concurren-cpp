@@ -12,11 +12,11 @@
 
 namespace concurrencpp::details {
     void atomic_wait_native(void* atom, int32_t old) noexcept {
-        ::WaitOnAddress(atom, &old, sizeof(atom), INFINITE);
+        ::WaitOnAddress(atom, &old, sizeof(old), INFINITE);
     }
 
     void atomic_wait_for_native(void* atom, int32_t old, std::chrono::milliseconds ms) noexcept {
-        ::WaitOnAddress(atom, &old, sizeof(atom), static_cast<DWORD>(ms.count()));
+        ::WaitOnAddress(atom, &old, sizeof(old), static_cast<DWORD>(ms.count()));
     }
 
     void atomic_notify_one_native(void* atom) noexcept {
@@ -75,26 +75,26 @@ extern "C" {
 
 enum ulock_flags {
 	UL_COMPARE_AND_WAIT = 1,
-	UL_COMPARE_AND_WAIT_64 = 5,
 	ULF_WAKE_ALL = 0x00000100,
 	ULF_NO_ERRNO = 0x01000000
 };
 
 namespace concurrencpp::details {
     void atomic_wait_native(void* atom, int32_t old) noexcept {
-        __ulock_wait(UL_COMPARE_AND_WAIT_64 | ULF_NO_ERRNO, atom, old, 0);
+        __ulock_wait(UL_COMPARE_AND_WAIT | ULF_NO_ERRNO, atom, old, 0);
     }
 
     void atomic_wait_for_native(void* atom, int32_t old, std::chrono::milliseconds ms) noexcept {
-        __ulock_wait(UL_COMPARE_AND_WAIT_64 | ULF_NO_ERRNO, atom, old, ms.count());
+        const auto us = std::chrono::duration_cast<std::chrono::microseconds>(ms);
+        __ulock_wait(UL_COMPARE_AND_WAIT | ULF_NO_ERRNO, atom, old, us.count());
     }
 
     void atomic_notify_one_native(void* atom) noexcept {
-        __ulock_wake(UL_COMPARE_AND_WAIT_64 | ULF_NO_ERRNO, atom, 0);
+        __ulock_wake(UL_COMPARE_AND_WAIT | ULF_NO_ERRNO, atom, 0);
     }
 
     void atomic_notify_all_native(void* atom) noexcept {
-        __ulock_wake(UL_COMPARE_AND_WAIT_64 | ULF_WAKE_ALL | ULF_NO_ERRNO, atom, 0);
+        __ulock_wake(UL_COMPARE_AND_WAIT | ULF_WAKE_ALL | ULF_NO_ERRNO, atom, 0);
     }
 }  // namespace concurrencpp::details
 
