@@ -12,11 +12,11 @@
 
 namespace concurrencpp::details {
     void atomic_wait_native(void* atom, int32_t old) noexcept {
-        ::WaitOnAddress(atom, &old, sizeof(atom), INFINITE);
+        ::WaitOnAddress(atom, &old, sizeof(old), INFINITE);
     }
 
     void atomic_wait_for_native(void* atom, int32_t old, std::chrono::milliseconds ms) noexcept {
-        ::WaitOnAddress(atom, &old, sizeof(atom), static_cast<DWORD>(ms.count()));
+        ::WaitOnAddress(atom, &old, sizeof(old), static_cast<DWORD>(ms.count()));
     }
 
     void atomic_notify_one_native(void* atom) noexcept {
@@ -68,7 +68,7 @@ namespace concurrencpp::details {
 
 #else
 
-#include "concurrencpp/threads/cache_line.h"
+#    include "concurrencpp/threads/cache_line.h"
 
 #    include <mutex>
 #    include <condition_variable>
@@ -109,7 +109,7 @@ namespace concurrencpp::details {
                 head = ctx;
             }
 
-            void remove_wait_ctx(wait_context* ctx) {
+            void remove_wait_ctx(wait_context* ctx) noexcept {
                 assert(ctx != nullptr);
                 assert(head != nullptr);
 
@@ -151,7 +151,7 @@ namespace concurrencpp::details {
         }
 
        public:
-        void notify_one(const void* const storage_ptr) noexcept {
+        void notify_one(const void* const storage_ptr) {
             auto& bucket = get_bucket_for(storage_ptr);
 
             std::unique_lock<std::mutex> lock(bucket.lock);
@@ -163,7 +163,7 @@ namespace concurrencpp::details {
             }
         }
 
-        void notify_all(const void* const storage_ptr) noexcept {
+        void notify_all(const void* const storage_ptr) {
             auto& bucket = get_bucket_for(storage_ptr);
 
             std::unique_lock<std::mutex> guard(bucket.lock);
@@ -174,42 +174,30 @@ namespace concurrencpp::details {
             }
         }
 
-        void wait(const void* const storage_ptr, const void* const comparand, size_t size) noexcept {
+        void wait(const void* const storage_ptr, const void* const comparand, size_t size) {
             auto& bucket = get_bucket_for(storage_ptr);
 
             std::unique_lock<std::mutex> lock(bucket.lock);
             scoped_wait_context context(bucket, storage_ptr);
 
-            while (true) {
-                if (std::memcmp(storage_ptr, comparand, size) != 0) {
-                    return;
-                }
-
-                context.cv.wait(lock);
+            if (std::memcmp(storage_ptr, comparand, size) != 0) {
+                return;
             }
+
+            context.cv.wait(lock);
         }
 
-        bool wait(const void* const storage_ptr,
-                  const void* const comparand,
-                  size_t size,
-                  std::chrono::milliseconds timeout_ms) noexcept {
-            const auto deadline = std::chrono::system_clock::now() + timeout_ms;
+        void wait(const void* const storage_ptr, const void* const comparand, size_t size, std::chrono::milliseconds timeout_ms) {
             auto& bucket = get_bucket_for(storage_ptr);
 
             std::unique_lock<std::mutex> lock(bucket.lock);
             scoped_wait_context context(bucket, storage_ptr);
 
-            while (true) {
-                if (std::memcmp(storage_ptr, comparand, size) != 0) {
-                    return true;
-                }
-
-                if (std::chrono::system_clock::now() >= deadline) {
-                    return false;
-                }
-
-                context.cv.wait_until(lock, deadline);
+            if (std::memcmp(storage_ptr, comparand, size) != 0) {
+                return;
             }
+
+            context.cv.wait_for(lock, timeout_ms);
         }
 
         static atomic_wait_table& instance() {
@@ -219,19 +207,31 @@ namespace concurrencpp::details {
     };
 
     void atomic_wait_native(void* atom, int32_t old) noexcept {
-        atomic_wait_table::instance().wait(atom, &old, sizeof(old));
+        try {
+            atomic_wait_table::instance().wait(atom, &old, sizeof(old));
+        } catch (...) {
+        }
     }
 
     void atomic_wait_for_native(void* atom, int32_t old, std::chrono::milliseconds ms) noexcept {
-        atomic_wait_table::instance().wait(atom, &old, sizeof(old), ms);
+        try {
+            atomic_wait_table::instance().wait(atom, &old, sizeof(old), ms);
+        } catch (...) {
+        }
     }
 
     void atomic_notify_one_native(void* atom) noexcept {
-        atomic_wait_table::instance().notify_one(atom);
+        try {
+            atomic_wait_table::instance().notify_one(atom);
+        } catch (...) {
+        }
     }
 
     void atomic_notify_all_native(void* atom) noexcept {
-        atomic_wait_table::instance().notify_all(atom);
+        try {
+            atomic_wait_table::instance().notify_all(atom);
+        } catch (...) {
+        }
     }
 }  // namespace concurrencpp::details
 

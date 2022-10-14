@@ -16,6 +16,7 @@ namespace concurrencpp::tests {
     void test_atomic_notify_one();
     void test_atomic_notify_all();
 
+    void test_atomic_mini_load_test();
 }  // namespace concurrencpp::tests
 
 using namespace concurrencpp::tests;
@@ -131,11 +132,9 @@ void concurrencpp::tests::test_atomic_notify_one() {
     }
 
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
-
-    flag = 1;
-    std::this_thread::sleep_for(std::chrono::milliseconds(50));
     assert_equal(woken.load(), 0);
 
+    flag = 1;
     for (size_t i = 0; i < std::size(waiters); i++) {
         concurrencpp::details::atomic_notify_one(flag);
         std::this_thread::sleep_for(std::chrono::milliseconds(15));
@@ -174,6 +173,49 @@ void concurrencpp::tests::test_atomic_notify_all() {
     }
 }
 
+void concurrencpp::tests::test_atomic_mini_load_test() {
+    std::thread waiters[20];
+    std::thread wakers[20];
+    std::atomic_int32_t atom {0};
+
+    const auto test_timeout = std::chrono::system_clock::now() + std::chrono::seconds(20);
+
+    for (auto& waiter : waiters) {
+        waiter = std::thread([&] {
+            while (std::chrono::system_clock::now() < test_timeout) {
+                concurrencpp::details::atomic_wait(atom, 0, std::memory_order_acquire);
+            }
+        });
+    }
+
+    for (auto& waker : wakers) {
+        waker = std::thread([&] {
+            int counter = 0;
+            while (std::chrono::system_clock::now() < test_timeout) {
+                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+
+            	if (counter % 2 == 0) {
+                    atom.fetch_add(1, std::memory_order_acq_rel);
+                } else {
+                    atom.store(0, std::memory_order_release);
+                }
+                concurrencpp::details::atomic_notify_one(atom);
+            }
+        });
+    }
+
+    for (auto& waker : wakers) {
+        waker.join();
+    }
+
+	atom.store(1, std::memory_order_release);
+    concurrencpp::details::atomic_notify_all(atom);
+
+    for (auto& waiter : waiters) {
+        waiter.join();
+    }
+}
+
 int main() {
     tester tester("atomic_wait test");
 
@@ -181,6 +223,7 @@ int main() {
     tester.add_step("wait_for", test_atomic_wait_for);
     tester.add_step("notify_one", test_atomic_notify_one);
     tester.add_step("notify_all", test_atomic_notify_all);
+    tester.add_step("mini load test", test_atomic_mini_load_test);
 
     tester.launch_test();
     return 0;

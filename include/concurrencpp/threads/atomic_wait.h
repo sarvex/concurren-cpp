@@ -47,7 +47,11 @@ namespace concurrencpp::details {
 
             const auto now = std::chrono::system_clock::now();
             if (now >= deadline) {
-                return atomic_wait_status::timeout;
+                if (val != old) {
+                    return atomic_wait_status::ok;
+                }
+
+            	return atomic_wait_status::timeout;
             }
 
             const auto time_diff = std::chrono::duration_cast<std::chrono::milliseconds>(deadline - now);

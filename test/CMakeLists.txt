@@ -97,7 +97,7 @@ function(add_test)
   endif()
 endfunction()
 
-add_test(NAME atomic_wait PATH source/tests/atomic_wait_tests.cpp)
+add_test(NAME atomic_wait_tests PATH source/tests/atomic_wait_tests.cpp)
 add_test(NAME task_tests PATH source/tests/task_tests.cpp)
 add_test(NAME runtime_tests PATH source/tests/runtime_tests.cpp)
 
