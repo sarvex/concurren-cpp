@@ -175,10 +175,11 @@ void concurrencpp::tests::test_atomic_notify_all() {
 
 void concurrencpp::tests::test_atomic_mini_load_test() {
     std::thread waiters[20];
+    std::thread waiters_for[20];
     std::thread wakers[20];
     std::atomic_int32_t atom {0};
 
-    const auto test_timeout = std::chrono::system_clock::now() + std::chrono::seconds(20);
+    const auto test_timeout = std::chrono::system_clock::now() + std::chrono::seconds(30);
 
     for (auto& waiter : waiters) {
         waiter = std::thread([&] {
@@ -188,18 +189,28 @@ void concurrencpp::tests::test_atomic_mini_load_test() {
         });
     }
 
+    for (auto& waiter_for : waiters_for) {
+        waiter_for = std::thread([&] {
+            while (std::chrono::system_clock::now() < test_timeout) {
+                concurrencpp::details::atomic_wait_for(atom, 0, std::chrono::milliseconds(2), std::memory_order_acquire);
+            }
+        });
+    }
+
     for (auto& waker : wakers) {
         waker = std::thread([&] {
             int counter = 0;
             while (std::chrono::system_clock::now() < test_timeout) {
-                std::this_thread::sleep_for(std::chrono::milliseconds(1));
+                std::this_thread::sleep_for(std::chrono::milliseconds(2));
 
-            	if (counter % 2 == 0) {
+                if (counter % 2 == 0) {
                     atom.fetch_add(1, std::memory_order_acq_rel);
                 } else {
                     atom.store(0, std::memory_order_release);
                 }
                 concurrencpp::details::atomic_notify_one(atom);
+
+                counter++;
             }
         });
     }
@@ -208,8 +219,12 @@ void concurrencpp::tests::test_atomic_mini_load_test() {
         waker.join();
     }
 
-	atom.store(1, std::memory_order_release);
+    atom.store(1, std::memory_order_release);
     concurrencpp::details::atomic_notify_all(atom);
+
+    for (auto& waiter_for : waiters_for) {
+        waiter_for.join();
+    }
 
     for (auto& waiter : waiters) {
         waiter.join();
