@@ -1,9 +1,42 @@
 #include "concurrencpp/concurrencpp.h"
 #include "utils/executor_shutdowner.h"
 
-#include <latch>
 #include <chrono>
 #include <iostream>
+
+namespace concurrencpp::tests::details {
+    class latch {
+        std::atomic_intptr_t m_counter;
+        std::mutex m_lock;
+        std::condition_variable m_cv;
+        bool m_ready = false;
+
+        latch(intptr_t counter) noexcept : m_counter(counter) {}
+
+        void count_down() {
+            const auto new_count = m_counter.fetch_sub(std::memory_order_relaxed);
+            if (new_count != 1) {
+                return;
+            }
+
+            {
+                std::unique_lock<std::mutex> lock(m_lock);
+                m_ready = true;
+            }
+
+            m_cv.notify_all();
+        }
+
+        void wait() {
+            std::unique_lock<std::mutex> lock(m_lock);
+            m_cv.wait(lock, [this] {
+                return m_ready;
+            });
+
+            assert(m_counter.load(std::memory_order_relaxed) == 0);
+        }
+    };
+}  // namespace concurrencpp::tests::details
 
 void test_executor_post(std::shared_ptr<concurrencpp::executor> executor, size_t tasks_per_thread = 100'000);
 void test_executor_submit(std::shared_ptr<concurrencpp::executor> executor, size_t tasks_per_thread = 100'000);
@@ -85,8 +118,9 @@ int main() {
     }
 }
 
-using namespace concurrencpp;
 using namespace std::chrono;
+using namespace concurrencpp;
+using namespace concurrencpp::tests::details;
 
 /*
  * When we test manual_executor, we need to inject to the test a group of threads that act
