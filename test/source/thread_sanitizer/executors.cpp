@@ -14,7 +14,7 @@ namespace concurrencpp::tests::details {
         latch(intptr_t counter) noexcept : m_counter(counter) {}
 
         void count_down() {
-            const auto new_count = m_counter.fetch_sub(std::memory_order_relaxed);
+            const auto new_count = m_counter.fetch_sub(1, std::memory_order_relaxed);
             if (new_count != 1) {
                 return;
             }
