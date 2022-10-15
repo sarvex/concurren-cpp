@@ -156,7 +156,7 @@ void test_executor_post(std::shared_ptr<concurrencpp::executor> executor, size_t
     const auto num_of_threads = std::thread::hardware_concurrency() * 4;
     const auto total_task_count = tasks_per_thread * num_of_threads;
 
-    std::latch latch(total_task_count);
+    latch latch(total_task_count);
 
     std::vector<std::thread> poster_threads;
     poster_threads.resize(num_of_threads);
@@ -240,7 +240,7 @@ void test_executor_bulk_post(std::shared_ptr<concurrencpp::executor> executor, s
     const auto num_of_threads = std::thread::hardware_concurrency() * 4;
     const auto total_task_count = tasks_per_thread * num_of_threads;
 
-    std::latch latch(total_task_count);
+    latch latch(total_task_count);
 
     std::vector<std::thread> poster_threads;
     poster_threads.resize(num_of_threads);
