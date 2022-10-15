@@ -11,6 +11,7 @@ namespace concurrencpp::tests::details {
         std::condition_variable m_cv;
         bool m_ready = false;
 
+        public:
         latch(intptr_t counter) noexcept : m_counter(counter) {}
 
         void count_down() {
