@@ -63,12 +63,12 @@ namespace concurrencpp::details {
     }
 
     template<class type>
-    void CRCPP_API atomic_notify_one(std::atomic<type>& atom) noexcept {
+    void atomic_notify_one(std::atomic<type>& atom) noexcept {
         atomic_notify_one_native(&atom);
     }
 
     template<class type>
-    void CRCPP_API atomic_notify_all(std::atomic<type>& atom) noexcept {
+    void atomic_notify_all(std::atomic<type>& atom) noexcept {
         atomic_notify_all_native(&atom);
     }
 }  // namespace concurrencpp::details
