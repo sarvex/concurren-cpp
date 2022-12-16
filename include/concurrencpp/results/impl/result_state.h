@@ -11,7 +11,7 @@
 #include <cassert>
 
 namespace concurrencpp::details {
-    class result_state_base {
+    class CRCPP_API result_state_base {
 
        public:
         enum class pc_status : int32_t { idle, consumer_set, consumer_waiting, consumer_done, producer_done };

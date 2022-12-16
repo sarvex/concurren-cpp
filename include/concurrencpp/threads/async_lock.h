@@ -14,7 +14,7 @@ namespace concurrencpp::details {
 namespace concurrencpp {
     class scoped_async_lock;
 
-    class async_lock {
+    class CRCPP_API async_lock {
 
         friend class scoped_async_lock;
         friend class details::async_lock_awaiter;
@@ -42,7 +42,7 @@ namespace concurrencpp {
         void unlock();
     };
 
-    class scoped_async_lock {
+    class CRCPP_API scoped_async_lock {
 
        private:
         async_lock* m_lock = nullptr;

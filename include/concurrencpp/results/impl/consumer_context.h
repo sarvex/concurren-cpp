@@ -5,7 +5,7 @@
 #include "concurrencpp/results/result_fwd_declarations.h"
 
 namespace concurrencpp::details {
-    class await_via_functor {
+    class CRCPP_API await_via_functor {
 
        private:
         coroutine_handle<void> m_caller_handle;
@@ -19,7 +19,7 @@ namespace concurrencpp::details {
         void operator()() noexcept;
     };
 
-    class when_any_context {
+    class CRCPP_API when_any_context {
 
        private:
         std::atomic<const result_state_base*> m_status;
@@ -39,7 +39,7 @@ namespace concurrencpp::details {
         bool resume_inline(result_state_base& completed_result) noexcept;
     };
 
-    class consumer_context {
+    class CRCPP_API consumer_context {
 
        private:
         enum class consumer_status { idle, await, when_any };
