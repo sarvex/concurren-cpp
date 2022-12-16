@@ -4,6 +4,8 @@
 #include "concurrencpp/coroutines/coroutine.h"
 #include "concurrencpp/results/result_fwd_declarations.h"
 
+#include <atomic>
+
 namespace concurrencpp::details {
     class CRCPP_API await_via_functor {
 
