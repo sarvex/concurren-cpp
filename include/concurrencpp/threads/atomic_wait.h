@@ -17,7 +17,7 @@ namespace concurrencpp::details {
     enum class atomic_wait_status { ok, timeout };
 
     template<class type>
-    void CRCPP_API atomic_wait(std::atomic<type>& atom, type old, std::memory_order order) noexcept {
+    void atomic_wait(std::atomic<type>& atom, type old, std::memory_order order) noexcept {
         static_assert(std::is_standard_layout_v<std::atomic<type>>, "atomic_wait - std::atom<type> is not standard-layout");
         static_assert(sizeof(type) == sizeof(int32_t), "atomic_wait - <<type>> must be 4 bytes.");
 
@@ -32,7 +32,7 @@ namespace concurrencpp::details {
     }
 
     template<class type>
-    atomic_wait_status CRCPP_API atomic_wait_for(std::atomic<type>& atom,
+    atomic_wait_status atomic_wait_for(std::atomic<type>& atom,
                                        type old,
                                        std::chrono::milliseconds ms,
                                        std::memory_order order) noexcept {
